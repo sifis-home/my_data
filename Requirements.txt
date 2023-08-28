@@ -1,0 +1,6 @@
+pvrecorder==1.2.0
+wave
+flask==2.2.2
+websocket-client==1.6.1
+rel==0.4.9
+requests==2.28.2

@@ -16,7 +16,10 @@ from pvrecorder import PvRecorder
 import wave
 import struct
 
-recorder = PvRecorder(device_index=1, frame_length=512)
+for index, device in enumerate(PvRecorder.get_available_devices()):
+    print(f"[{index}] {device}")
+
+recorder = PvRecorder(device_index=3, frame_length=512)
 audio = []
 
 try:
