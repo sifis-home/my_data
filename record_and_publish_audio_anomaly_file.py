@@ -7,7 +7,7 @@ import _thread
 import rel
 import re
 import argparse
-import platform
+import socket
 import datetime
 import hashlib
 
@@ -30,20 +30,19 @@ try:
         audio.extend(frame)
 except KeyboardInterrupt:
     recorder.stop()
-    with wave.open("demo.wav", 'w') as f:
+    with wave.open("audio.wav", 'w') as f:
         f.setparams((1, 2, 16000, 512, "NONE", "NONE"))
         f.writeframes(struct.pack("h" * len(audio), *audio))
 finally:
     recorder.delete()
 
 
-audio_file = "demo.wav"
-method = "Whisper"
+audio_file = "audio.wav"
+# method = "dp_noise"
+# method = "scrample"
+method = "nothing"
 requestor_type = "NSSD"
 
-
-# Put in Input JSON File
-entity_types = ['PERSON', 'NORP', 'FAC', 'ORG', 'GPE', 'LOC', 'PRODUCT', 'EVENT', 'WORK_OF_ART', 'LAW', 'LANGUAGE', 'DATE', 'TIME', 'PERCENT', 'MONEY', 'QUANTITY', 'ORDINAL', 'CARDINAL']
 
 def on_error(ws, error):
     print(error)
@@ -56,8 +55,17 @@ def on_close(ws, close_status_code, close_msg):
 def on_open(ws):
     print("### Connection established ###")
 
-def publish(entity_types, audio_file):
-    requestor_id = platform.node()
+def publish(method, audio_file, requestor_type):
+
+    ## getting the hostname by socket.gethostname() method
+    hostname = socket.gethostname()
+    ## getting the IP address using socket.gethostbyname() method
+    ip_address = socket.gethostbyname(hostname)
+    ## printing the hostname and ip_address
+    print(f"Hostname: {hostname}")
+    print(f"IP Address: {ip_address}")
+
+    requestor_id = ip_address
 
     # Get current date and time
     now = datetime.datetime.now()
@@ -81,20 +89,19 @@ def publish(entity_types, audio_file):
 
     ws_req = {
             "RequestPostTopicUUID": {
-                "topic_name": "SIFIS:Privacy_Aware_Speech_Recognition",
-                "topic_uuid": "Speech_Recognition",
+                "topic_name": "SIFIS:Privacy_Aware_Audio_Anomaly_Detection",
+                "topic_uuid": "Audio_Anomaly_Detection",
                 "value": {
-                    "description": "Speech Recognition",
+                    "description": "Audio Anomaly Detection",
                     "requestor_id": str(requestor_id),
                     "requestor_type": str(requestor_type),
                     "request_id": str(request_id),
                     "Type": "Audio_file",
-                    "Entity Types": entity_types,
-                    "Audio File": str(audio_file),
+                    "audio_file": str(audio_file),
                     "method": str(method)
                 }
             }
         }
     ws.send(json.dumps(ws_req))
 
-publish(entity_types, audio_file)
+publish(method, audio_file, requestor_type)
